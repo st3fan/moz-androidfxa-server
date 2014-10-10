@@ -55,7 +55,7 @@ def verify(access_token):
         headers = {"Content-type": "application/json"}
         r = requests.post(OAUTH_URI + "/verify", data=json.dumps(data), headers=headers)
         r.raise_for_status()
-        return r.json
+        return r.json()
 
 @app.route("/")
 def index():
@@ -80,10 +80,7 @@ def oauth():
         abort(400)
 
     token_response = get_token(code)
-    print "TOKEN", token_response
-
     profile = get_profile(token_response["access_token"])
-    print "PROFILE", profile
 
     return jsonify(token=token_response, profile=profile)
 
