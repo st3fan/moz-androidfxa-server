@@ -49,6 +49,13 @@ def get_profile(token):
     r.raise_for_status()
     return r.json()
 
+def verify(access_token):
+    if access_token:
+        data = dict(token=access_token)
+        headers = {"Content-type": "application/json"}
+        r = requests.post(OAUTH_URI + "/verify", data=json.dumps(data), headers=headers)
+        r.raise_for_status()
+        return r.json
 
 @app.route("/")
 def index():
@@ -64,9 +71,9 @@ def oauth():
     if "state" not in request.args or "code" not in request.args:
         abort(400)
 
-    #state = request.args.get("state")
-    #if not state or request.args.get("state") != session.get("state"):
-    #    abort(400)
+    state = request.args.get("state")
+    if not state or request.args.get("state") != session.get("state"):
+        abort(400)
 
     code = request.args.get("code")
     if not code:
@@ -79,6 +86,22 @@ def oauth():
     print "PROFILE", profile
 
     return jsonify(token=token_response, profile=profile)
+
+
+@app.route("/api/hello")
+def api_hello():
+    if "Authorization" not in request.headers:
+        abort(401)
+
+    method, token = request.headers["authorization"].split(" ")
+    if method != "Bearer":
+        abort(401)
+
+    r = verify(token)
+    if r is None:
+        abort(401)
+
+    return "Hello, " + request.args.get("name")
 
 
 if __name__ == "__main__":
