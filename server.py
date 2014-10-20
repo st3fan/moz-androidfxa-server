@@ -63,8 +63,10 @@ def index():
 
 @app.route("/login")
 def login():
-    session["state"] = random_nonce()
-    return redirect(redirect_url("/signin", session["state"]))
+    state = random_nonce()
+    res = redirect(redirect_url("/signin", state))
+    res.set_cookie("state", state)
+    return res
 
 @app.route("/oauth")
 def oauth():
@@ -72,7 +74,7 @@ def oauth():
         abort(400)
 
     state = request.args.get("state")
-    if not state or request.args.get("state") != session.get("state"):
+    if not state or state != request.cookies.get("state"):
         abort(400)
 
     code = request.args.get("code")
